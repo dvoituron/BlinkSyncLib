@@ -40,7 +40,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlinkSync.cs" />
+    <Compile Include="DirectoryInfoComparer.cs" />
+    <Compile Include="FileInfoComparer.cs" />
+    <Compile Include="InputParams.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SyncResults.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
