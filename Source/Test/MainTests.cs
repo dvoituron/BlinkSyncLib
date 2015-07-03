@@ -23,7 +23,6 @@ namespace BlinkSyncTests
         {
             inputParams = new InputParams();
             expectedResults = new SyncResults();
-            inputParams.IsQuiet = true;
         }
 
         [TestMethod]

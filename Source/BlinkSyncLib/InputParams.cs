@@ -5,11 +5,7 @@ namespace BlinkSyncLib
 {
     public class InputParams
     {
-        /// <summary>
-        /// Are we in quiet mode
-        /// </summary>
-        public bool IsQuiet { get; set; }
-
+       
         /// <summary>
         /// Should exclude hidden files/directories in source
         /// </summary>

@@ -252,10 +252,8 @@ namespace BlinkSyncLib
             {
                 try
                 {
-                    if (!inputParams.IsQuiet)
-                    {
-                        Trace("Creating directory: {0}", diDest.FullName);
-                    }
+                    Trace("Creating directory: {0}", diDest.FullName);
+
                     // create the destination directory
                     diDest.Create();
                     results.DirectoriesCreated++;
@@ -312,10 +310,8 @@ namespace BlinkSyncLib
 
                     try
                     {
-                        if (!inputParams.IsQuiet)
-                        {
-                            Trace("Copying: {0} -> {1}", srcFile.FullName, Path.GetFullPath(destPath));
-                        }
+                        Trace("Copying: {0} -> {1}", srcFile.FullName, Path.GetFullPath(destPath));
+
                         // copy the file
                         srcFile.CopyTo(destPath, true);
                         // set attributes appropriately
@@ -344,10 +340,9 @@ namespace BlinkSyncLib
 
                         try
                         {
-                            if (!inputParams.IsQuiet)
-                            {
-                                Trace("Deleting: {0} ", destFile.FullName);
-                            }
+
+                            Trace("Deleting: {0} ", destFile.FullName);
+
                             destFile.IsReadOnly = false;
                             // delete the file
                             destFile.Delete();
@@ -391,10 +386,8 @@ namespace BlinkSyncLib
 
                         try
                         {
-                            if (!inputParams.IsQuiet)
-                            {
-                                Trace("Deleting directory: {0} ", diDestSubdir.FullName);
-                            }
+                            Trace("Deleting directory: {0} ", diDestSubdir.FullName);
+                            
                             // delete directory
                             DeleteDirectory(diDestSubdir);
                             results.DirectoriesDeleted++;
@@ -459,7 +452,6 @@ namespace BlinkSyncLib
             Console.WriteLine("Usage: ");
             Console.WriteLine("blinksync [options] <source directory tree> <destination directory tree>");
             Console.WriteLine("Where options are:");
-            Console.WriteLine("\t-q\tQuiet");
             Console.WriteLine("\t-d\tDelete files and directories in destination which do not appear in source");
             Console.WriteLine("\t-xf <filespec,filespec...>\tExclude files from source that match any of the filespecs");
             Console.WriteLine("\t-xd <filespec,filespec...>\tExclude directories from source that match any of the filespecs");
@@ -487,5 +479,5 @@ namespace BlinkSyncLib
 
         #endregion
     }
-    
+
 }
