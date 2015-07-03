@@ -12,16 +12,23 @@ namespace BlinkSyncTests
     [TestClass]
     public class MainTest
     {
-        public const string baseDirSrc = @"c:\testsrc";
-        public const string baseDirDest = @"c:\testdest";
-        
-        [TestMethod]
-        public void RunTests()
-        {
-            InputParams inputParams = new InputParams();
-            SyncResults expectedResults = new SyncResults();
-            inputParams.IsQuiet = true;
+        public const string baseDirSrc = @"C:\TestSrc";
+        public const string baseDirDest = @"C:\TestDest";
 
+        private InputParams inputParams;
+        private SyncResults expectedResults;
+
+        [TestInitialize]
+        public void Initialization()
+        {
+            inputParams = new InputParams();
+            expectedResults = new SyncResults();
+            inputParams.IsQuiet = true;
+        }
+
+        [TestMethod]
+        public void Copying4Files_DestinationFolderDoNotExist()
+        {
             inputParams.DeleteFromDest = true;
 
             // test copying 4 files, dest dirs do not exist yet
@@ -29,37 +36,73 @@ namespace BlinkSyncTests
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 null, null,
                inputParams, expectedResults);
+        }
+
+        [TestMethod]
+        public void Copying4Files_DestinationFolderExist()
+        {
+            inputParams.DeleteFromDest = true;
 
             // test copying 4 files where dest dirs exist
             expectedResults.Set(4, 0, 0, 0, 0, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"foo" }, null,
                inputParams, expectedResults);
+        }
+
+        [TestMethod]
+        public void Copying4Files_2FilesAlreadyExistAndAreUpToDate()
+        {
+            inputParams.DeleteFromDest = true;
 
             // test copying 4 files where 2 files already exist and are up to date
             expectedResults.Set(2, 2, 0, 0, 0, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"foo" }, new string[] { @"*c|foo.txt", @"*c|foo\foo1.txt" },
                inputParams, expectedResults);
+        }
+
+        [TestMethod]
+        public void Copying4Files_2FilesAlreadyExistButAreDifferent()
+        {
+            inputParams.DeleteFromDest = true;
 
             // test copying 4 files where 2 files already exist but are different
             expectedResults.Set(4, 0, 0, 0, 0, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"foo" }, new string[] { @"foo.txt", @"foo\foo1.txt" },
                inputParams, expectedResults);
+        }
+
+        //***
+        [TestMethod]
+        public void Copying4Files_2AdditionalFilesExistInDestination()
+        {
+            inputParams.DeleteFromDest = true;
 
             // test copying 4 files where 2 additional files exist in destination
             expectedResults.Set(4, 0, 2, 0, 0, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"foo" }, new string[] { @"foo\foo3.txt", @"foo\foo4.txt" },
                inputParams, expectedResults);
+        }
+
+        //***
+        [TestMethod]
+        public void Copying4Files_AdditionalDirectoryExistsInDestination()
+        {
+            inputParams.DeleteFromDest = true;
 
             // test copying 4 files where additional directory exists in destination
             expectedResults.Set(4, 0, 0, 0, 1, 1, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"barbar" }, null,
                inputParams, expectedResults);
+        }
 
+        [TestMethod]
+        public void Copying4Files_2AdditionalFileExistInDestination()
+        {
             inputParams.DeleteFromDest = false;
 
             // test copying 4 files where 2 additional files exist in destination
@@ -67,13 +110,21 @@ namespace BlinkSyncTests
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"foo" }, new string[] { @"foo\foo3.txt", @"foo\foo4.txt" },
                inputParams, expectedResults);
+        }
 
+        [TestMethod]
+        public void Copying4Files_AdditionalDirectoryInDestination()
+        {
             // test copying 4 files where additional directory exists in destination
             expectedResults.Set(4, 0, 0, 0, 1, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"barbar" }, null,
                inputParams, expectedResults);
+        }
 
+        [TestMethod]
+        public void Copying4Files_2AreHidden()
+        {
             inputParams.DeleteFromDest = true;
 
             // test copying 4 files, 2 are hidden
@@ -81,13 +132,22 @@ namespace BlinkSyncTests
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"*h|bar.txt", @"foo\foo1.txt", @"*h|foo\foo2.txt" },
                 null, null,
                inputParams, expectedResults);
+        }
 
+        [TestMethod]
+        public void Copying4Files_2AreHidden_WithExcludeHidden()
+        {
             // test copying 4 files, 2 are hidden
             expectedResults.Set(2, 0, 0, 2, 2, 0, 0);
             inputParams.ExcludeHidden = true;
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"*h|bar.txt", @"foo\foo1.txt", @"*h|foo\foo2.txt" },
                 null, null,
                inputParams, expectedResults);
+        }
+
+        [TestMethod]
+        public void CopyingFiles_ExcludeFileFilter()
+        {
             inputParams.ExcludeHidden = false;
 
             // test copying files with an exclude file filter -- foo.jpg should not get copied
@@ -96,20 +156,33 @@ namespace BlinkSyncTests
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.jpg", @"bar.txt", @"foo\foo1.png", @"foo\txt.foo" },
                 null, null,
                inputParams, expectedResults);
+        }
 
+        [TestMethod]
+        public void CopyingFiles_ExcludeFileFilterNotMatchAnyFiles()
+        {
             // test copying files with an exclude file filter that will not match any files
             inputParams.ExcludeFiles = SyncTools.FileSpecsToRegex(new string[] { "*.abc", "foo" });
             expectedResults.Set(4, 0, 0, 0, 2, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.jpg", @"bar.txt", @"foo\foo1.png", @"foo\txt.foo" },
                 null, null,
                inputParams, expectedResults);
+        }
 
+        [TestMethod]
+        public void CopyingFiles_ExcludeFileFilterCase()
+        {
             // test copying files with another exclude file filter case
             inputParams.ExcludeFiles = SyncTools.FileSpecsToRegex(new string[] { "*foo*" });
             expectedResults.Set(1, 0, 0, 3, 2, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.jpg", @"bar.txt", @"foo\foo1.png", @"foo\txt.foo" },
                 null, null,
                inputParams, expectedResults);
+        }
+
+        [TestMethod]
+        public void CopyingFile_DirectoryExcludeFilter()
+        {
             inputParams.ExcludeFiles = null;
 
             // test copying files with a directory exclude filter
@@ -118,6 +191,11 @@ namespace BlinkSyncTests
             TestOneCase(new string[] { @"foo", @"bar" }, new string[] { @"foo.jpg", @"bar.txt", @"foo\foo1.png", @"bar\txt.foo" },
                 null, null,
                inputParams, expectedResults);
+        }
+
+        [TestMethod]
+        public void CopyingFiles_FileIncludeFilter()
+        {
             inputParams.ExcludeDirs = null;
 
             // test copying files with a file include filter
@@ -126,41 +204,61 @@ namespace BlinkSyncTests
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.jpg", @"bar.txt", @"foo\foo1.png", @"foo\txt.foo" },
                 null, null,
                inputParams, expectedResults);
+        }
+
+        [TestMethod]
+        public void CopyingFiles_DirectoryIncludeFilter()
+        {
             inputParams.IncludeFiles = null;
+            inputParams.IncludeDirs = SyncTools.FileSpecsToRegex(new string[] { "foo*" });
 
             // test copying files with a directory include filter
-            inputParams.IncludeDirs = SyncTools.FileSpecsToRegex(new string[] { "foo*" });
+
             expectedResults.Set(3, 0, 0, 0, 2, 0, 2);
             TestOneCase(new string[] { @"foo", @"bar", @"bar2" }, new string[] { @"foo.jpg", @"bar.txt", @"foo\foo1.png", @"bar\txt.foo", @"bar2\thing.jig" },
                 null, null,
                inputParams, expectedResults);
+        }
 
-            // test copying files with a directory include filter that doesn't match any subdirectories
+        [TestMethod]
+        public void CopyingFiles_DirectoryIncludeFilterNotMatchAnySubdirectories()
+        {
             inputParams.IncludeDirs = SyncTools.FileSpecsToRegex(new string[] { "marvin" });
+
+            // test copying files with a directory include filter that doesn't match any subdirectories            
             expectedResults.Set(2, 0, 0, 0, 1, 0, 3);
             TestOneCase(new string[] { @"foo", @"bar", @"bar2" }, new string[] { @"foo.jpg", @"bar.txt", @"foo\foo1.png", @"bar\txt.foo", @"bar2\thing.jig" },
                 null, null,
                inputParams, expectedResults);
-            inputParams.IncludeDirs = null;
+        }
 
-            // test copying files with an exclude-from-deletion file filter
+        [TestMethod]
+        public void CopyingFiles_ExcludeFromDeletionFileFilter()
+        {
+            inputParams.IncludeDirs = null;
             inputParams.DeleteFromDest = true;
             inputParams.DeleteExcludeFiles = SyncTools.FileSpecsToRegex(new string[] { "*.jpg" });
+
+            // test copying files with an exclude-from-deletion file filter            
             expectedResults.Set(4, 0, 1, 0, 0, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"foo" }, new string[] { @"foo\foo3.jpg", @"foo\foo4.txt" },
                inputParams, expectedResults);
+        }
+
+        //***
+        [TestMethod]
+        public void CopyingFiles_ExcludeFromDeletionDirectoryFilter()
+        {
             inputParams.DeleteExcludeFiles = null;
+            inputParams.DeleteFromDest = true;
+            inputParams.DeleteExcludeDirs = SyncTools.FileSpecsToRegex(new string[] { "f*" });
 
             // test copying files with an exclude-from-deletion directory filter            
-            inputParams.DeleteExcludeDirs = SyncTools.FileSpecsToRegex(new string[] { "f*" });
             expectedResults.Set(4, 0, 2, 0, 0, 0, 0);
             TestOneCase(new string[] { @"foo" }, new string[] { @"foo.txt", @"bar.txt", @"foo\foo1.txt", @"foo\foo2.txt" },
                 new string[] { @"foo", "foo1" }, new string[] { @"foo\foo3.jpg", @"foo\foo4.txt" },
                inputParams, expectedResults);
-            inputParams.DeleteExcludeDirs = null;
-
-            inputParams.DeleteFromDest = false;
         }
 
         /// <summary>
