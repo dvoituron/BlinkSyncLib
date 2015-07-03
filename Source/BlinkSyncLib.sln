@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkSyncLib", "BlinkSyncLib.csproj", "{707E9BA4-9DE9-4B36-96D5-C5C9FCE4EE5F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkSyncLib", "BlinkSyncLib\BlinkSyncLib.csproj", "{707E9BA4-9DE9-4B36-96D5-C5C9FCE4EE5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkSyncTests", "Test\BlinkSyncTests.csproj", "{51B052B9-634D-45C9-BAFE-24C2BC8CA884}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{707E9BA4-9DE9-4B36-96D5-C5C9FCE4EE5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{707E9BA4-9DE9-4B36-96D5-C5C9FCE4EE5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{707E9BA4-9DE9-4B36-96D5-C5C9FCE4EE5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51B052B9-634D-45C9-BAFE-24C2BC8CA884}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51B052B9-634D-45C9-BAFE-24C2BC8CA884}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51B052B9-634D-45C9-BAFE-24C2BC8CA884}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51B052B9-634D-45C9-BAFE-24C2BC8CA884}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

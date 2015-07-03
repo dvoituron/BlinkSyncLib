@@ -18,13 +18,20 @@ namespace BlinkSyncLib
         /// <summary>
         /// Initializes a new instance of Synchonizer object.
         /// </summary>
+        public Sync()
+        {
+            this.Configuration = new InputParams();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of Synchonizer object.
+        /// </summary>
         /// <param name="sourceDirectory"></param>
         /// <param name="destinationDirectory"></param>
-        public Sync(string sourceDirectory, string destinationDirectory)
+        public Sync(string sourceDirectory, string destinationDirectory) : this()
         {
             this.SourceDirectory = new DirectoryInfo(sourceDirectory);
             this.DestinationDirectory = new DirectoryInfo(destinationDirectory);
-            this.Configuration = new InputParams();
         }
 
         #endregion
@@ -40,12 +47,12 @@ namespace BlinkSyncLib
         /// <summary>
         /// Get or set the source folder to synchronize
         /// </summary>
-        public DirectoryInfo SourceDirectory { get; set; }
+        public virtual DirectoryInfo SourceDirectory { get; set; }
 
         /// <summary>
         /// Get or set the target folder where all files will be synchronized
         /// </summary>
-        public DirectoryInfo DestinationDirectory { get; set; }
+        public virtual DirectoryInfo DestinationDirectory { get; set; }
 
         /// <summary>
         /// Get or set all synronization parameters
@@ -59,7 +66,7 @@ namespace BlinkSyncLib
         /// <summary>
         /// Performs one-way synchronization from source directory tree to destination directory tree
         /// </summary>
-        public SyncResults Start()
+        public virtual SyncResults Start()
         {
             SyncResults results = new SyncResults();
 
@@ -74,10 +81,20 @@ namespace BlinkSyncLib
         }
 
         /// <summary>
+        /// Performs one-way synchronization from source directory tree to destination directory tree
+        /// </summary>
+        /// <param name="configuration"></param>
+        public virtual SyncResults Start(InputParams configuration)
+        {
+            this.Configuration = configuration;
+            return this.Start();
+        }
+
+        /// <summary>
         /// Robustly deletes a directory including all subdirectories and contents
         /// </summary>
         /// <param name="directory"></param>
-        public void DeleteDirectory(DirectoryInfo directory)
+        public virtual void DeleteDirectory(DirectoryInfo directory)
         {
             // make sure all files are not read-only
             FileInfo[] files = directory.GetFiles("*.*", SearchOption.AllDirectories);
@@ -113,7 +130,7 @@ namespace BlinkSyncLib
         /// <param name="directoryInfo"></param>
         /// <param name="inputParams"></param>
         /// <param name="results"></param>
-        public FileInfo[] GetFiles(DirectoryInfo directoryInfo, InputParams inputParams, ref SyncResults results)
+        public virtual FileInfo[] GetFiles(DirectoryInfo directoryInfo, InputParams inputParams, ref SyncResults results)
         {
             // get all files
             List<FileInfo> fileList = new List<FileInfo>(directoryInfo.GetFiles());
@@ -147,7 +164,7 @@ namespace BlinkSyncLib
         /// <param name="results"></param>
         /// <param name="inputParams"></param>
         /// <param name="directoryInfo"></param>
-        public DirectoryInfo[] GetDirectories(DirectoryInfo directoryInfo, InputParams inputParams, ref SyncResults results)
+        public virtual DirectoryInfo[] GetDirectories(DirectoryInfo directoryInfo, InputParams inputParams, ref SyncResults results)
         {
             // get all directories
             List<DirectoryInfo> directoryList = new List<DirectoryInfo>(directoryInfo.GetDirectories());
@@ -393,48 +410,6 @@ namespace BlinkSyncLib
             return true;
         }
 
-        /// <summary>
-        /// Parses list of comma-separated filespecs from specified argument and returns list of regex equivalents as out parameter
-        /// </summary>
-        /// <param name="args"></param>
-        /// <param name="iArg"></param>
-        /// <param name="matches"></param>
-        private bool ParseFilespecs(string[] args, int iArg, out Regex[] matches)
-        {
-            matches = null;
-            if (iArg >= args.Length)
-                return false;
-
-            List<Regex> regexList = new List<Regex>();
-            string filespecStr = args[iArg];
-            int pos = 0, end;
-            while (pos < filespecStr.Length)
-            {
-                if (filespecStr[pos] == '"')
-                {
-                    if (pos + 1 >= filespecStr.Length)
-                        return false;
-                    end = filespecStr.IndexOf('"', pos + 1);
-                    if (end == -1)
-                        return false;
-                }
-                else
-                {
-                    end = filespecStr.IndexOf(',', pos + 1);
-                    if (end == -1)
-                        end = filespecStr.Length;
-                }
-                string filespec = filespecStr.Substring(pos, end - pos);
-                regexList.Add(FileSpecToRegex(filespec));
-                pos = end;
-                if ((pos < filespecStr.Length) && (filespecStr[pos] != ','))
-                    return false;
-                pos++; // skip the next comma
-            }
-
-            matches = regexList.ToArray();
-            return true;
-        }
 
         /// <summary>
         /// For a given include and exclude list of regex's and a name to match, determines if the
@@ -474,33 +449,6 @@ namespace BlinkSyncLib
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Converts specified filespec string to equivalent regex
-        /// </summary>
-        /// <param name="fileSpec"></param>
-        private Regex FileSpecToRegex(string fileSpec)
-        {
-            string pattern = fileSpec.Trim();
-            pattern = pattern.Replace(".", @"\.");
-            pattern = pattern.Replace("*", @".*");
-            pattern = pattern.Replace("?", @".?");
-            return new Regex("^" + pattern + "$", RegexOptions.IgnoreCase);
-        }
-
-        /// <summary>
-        /// Converts array of filespec strings to array of equivalent regexes
-        /// </summary>
-        /// <param name="fileSpecs"></param>
-        private Regex[] FileSpecsToRegex(string[] fileSpecs)
-        {
-            List<Regex> regexList = new List<Regex>();
-            foreach (string fileSpec in fileSpecs)
-            {
-                regexList.Add(FileSpecToRegex(fileSpec));
-            }
-            return regexList.ToArray();
         }
 
         /// <summary>

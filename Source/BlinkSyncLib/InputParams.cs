@@ -16,7 +16,7 @@ namespace BlinkSyncLib
         public bool ExcludeHidden { get; set; }
 
         /// <summary>
-        /// should delete files/directories from dest than are not present in source
+        /// Should delete files/directories from dest than are not present in source
         /// </summary>
         public bool DeleteFromDest { get; set; }
 
