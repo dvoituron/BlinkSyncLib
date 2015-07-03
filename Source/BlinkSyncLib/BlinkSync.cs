@@ -1,25 +1,4 @@
-﻿//
-// BLINKSYNC.CS 
-//
-// Copyright (c) 2008 BlinkSync development team (Jeremy Stone et al)
-// 
-// This file is part of BlinkSync.
-//
-// BlinkSync is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// BlinkSync is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with BlinkSync.  If not, see <http://www.gnu.org/licenses/>.
-//
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -29,9 +8,29 @@ using System.Text.RegularExpressions;
 
 namespace BlinkSyncLib
 {
-
+    /// <summary>
+    /// Folders and files synchronization
+    /// </summary>
     public class Sync
     {
+        #region CONSTRUCTORS
+
+        /// <summary>
+        /// Initializes a new instance of Synchonizer object.
+        /// </summary>
+        /// <param name="sourceDirectory"></param>
+        /// <param name="destinationDirectory"></param>
+        public Sync(string sourceDirectory, string destinationDirectory)
+        {
+            this.SourceDirectory = new DirectoryInfo(sourceDirectory);
+            this.DestinationDirectory = new DirectoryInfo(destinationDirectory);
+            this.Configuration = new InputParams();
+        }
+
+        #endregion
+
+        #region PROPERTIES
+
         /// <summary>
         /// Set this property to log the synchronization progress by this class to the given delegate. 
         /// For example, to log to the console, set this property to Console.Write.
@@ -39,17 +38,36 @@ namespace BlinkSyncLib
         public virtual Action<string> Log { get; set; }
 
         /// <summary>
+        /// Get or set the source folder to synchronize
+        /// </summary>
+        public DirectoryInfo SourceDirectory { get; set; }
+
+        /// <summary>
+        /// Get or set the target folder where all files will be synchronized
+        /// </summary>
+        public DirectoryInfo DestinationDirectory { get; set; }
+
+        /// <summary>
+        /// Get or set all synronization parameters
+        /// </summary>
+        public InputParams Configuration { get; set; }
+
+        #endregion
+
+        #region METHODS
+
+        /// <summary>
         /// Performs one-way synchronization from source directory tree to destination directory tree
         /// </summary>
-        public SyncResults Start(string srcDir, string destDir, InputParams inputParams)
+        public SyncResults Start()
         {
             SyncResults results = new SyncResults();
 
-            if (Validate(srcDir, destDir, inputParams))
-            {                
+            if (Validate(this.SourceDirectory.FullName, this.DestinationDirectory.FullName, this.Configuration))
+            {
                 // recursively process directories
-                ProcessDirectory(srcDir, destDir, inputParams, ref results);
-                
+                ProcessDirectory(this.SourceDirectory.FullName, this.DestinationDirectory.FullName, this.Configuration, ref results);
+
             }
 
             return results;
@@ -58,11 +76,11 @@ namespace BlinkSyncLib
         /// <summary>
         /// Robustly deletes a directory including all subdirectories and contents
         /// </summary>
-        public void DeleteDirectory(string directory)
+        /// <param name="directory"></param>
+        public void DeleteDirectory(DirectoryInfo directory)
         {
             // make sure all files are not read-only
-            DirectoryInfo directoryInfo = new DirectoryInfo(directory);
-            FileInfo[] files = directoryInfo.GetFiles("*.*", SearchOption.AllDirectories);
+            FileInfo[] files = directory.GetFiles("*.*", SearchOption.AllDirectories);
             foreach (FileInfo fileInfo in files)
             {
                 if (fileInfo.IsReadOnly)
@@ -72,7 +90,7 @@ namespace BlinkSyncLib
             }
 
             // make sure all subdirectories are not read-only
-            DirectoryInfo[] directories = directoryInfo.GetDirectories("*.*", SearchOption.AllDirectories);
+            DirectoryInfo[] directories = directory.GetDirectories("*.*", SearchOption.AllDirectories);
             foreach (DirectoryInfo subdir in directories)
             {
                 if ((subdir.Attributes & FileAttributes.ReadOnly) > 0)
@@ -82,16 +100,19 @@ namespace BlinkSyncLib
             }
 
             // make sure top level directory is not read-only
-            if ((directoryInfo.Attributes & FileAttributes.ReadOnly) > 0)
+            if ((directory.Attributes & FileAttributes.ReadOnly) > 0)
             {
-                directoryInfo.Attributes &= ~FileAttributes.ReadOnly;
+                directory.Attributes &= ~FileAttributes.ReadOnly;
             }
-            directoryInfo.Delete(true);
+            directory.Delete(true);
         }
 
         /// <summary>
         /// Gets list of files in specified directory, optionally filtered by specified input parameters
         /// </summary>
+        /// <param name="directoryInfo"></param>
+        /// <param name="inputParams"></param>
+        /// <param name="results"></param>
         public FileInfo[] GetFiles(DirectoryInfo directoryInfo, InputParams inputParams, ref SyncResults results)
         {
             // get all files
@@ -123,6 +144,9 @@ namespace BlinkSyncLib
         /// <summary>
         /// Gets list of subdirectories of specified directory, optionally filtered by specified input parameters
         /// </summary>
+        /// <param name="results"></param>
+        /// <param name="inputParams"></param>
+        /// <param name="directoryInfo"></param>
         public DirectoryInfo[] GetDirectories(DirectoryInfo directoryInfo, InputParams inputParams, ref SyncResults results)
         {
             // get all directories
@@ -150,9 +174,16 @@ namespace BlinkSyncLib
             return directoryList.ToArray();
         }
 
+        #endregion
+
+        #region PRIVATES
+
         /// <summary>
-        /// Main entry point
+        /// Validate folder and parameters
         /// </summary>
+        /// <param name="destDir"></param>
+        /// <param name="parameters"></param>
+        /// <param name="srcDir"></param>
         private bool Validate(string srcDir, string destDir, InputParams parameters)
         {
             if (((parameters.IncludeFiles != null) && (parameters.ExcludeFiles != null)) ||
@@ -190,6 +221,10 @@ namespace BlinkSyncLib
         /// <summary>
         /// Recursively performs one-way synchronization from a single source to destination directory
         /// </summary>
+        /// <param name="srcDir"></param>
+        /// <param name="destDir"></param>
+        /// <param name="inputParams"></param>
+        /// <param name="results"></param>
         private bool ProcessDirectory(string srcDir, string destDir, InputParams inputParams, ref SyncResults results)
         {
             DirectoryInfo diSrc = new DirectoryInfo(srcDir);
@@ -344,7 +379,7 @@ namespace BlinkSyncLib
                                 Trace("Deleting directory: {0} ", diDestSubdir.FullName);
                             }
                             // delete directory
-                            DeleteDirectory(diDestSubdir.FullName);
+                            DeleteDirectory(diDestSubdir);
                             results.DirectoriesDeleted++;
                         }
                         catch (Exception ex)
@@ -361,6 +396,9 @@ namespace BlinkSyncLib
         /// <summary>
         /// Parses list of comma-separated filespecs from specified argument and returns list of regex equivalents as out parameter
         /// </summary>
+        /// <param name="args"></param>
+        /// <param name="iArg"></param>
+        /// <param name="matches"></param>
         private bool ParseFilespecs(string[] args, int iArg, out Regex[] matches)
         {
             matches = null;
@@ -402,6 +440,9 @@ namespace BlinkSyncLib
         /// For a given include and exclude list of regex's and a name to match, determines if the
         /// named item should be excluded
         /// </summary>
+        /// <param name="excludeList"></param>
+        /// <param name="includeList"></param>
+        /// <param name="name"></param>
         private bool ShouldExclude(Regex[] excludeList, Regex[] includeList, string name)
         {
             if (excludeList != null)
@@ -438,6 +479,7 @@ namespace BlinkSyncLib
         /// <summary>
         /// Converts specified filespec string to equivalent regex
         /// </summary>
+        /// <param name="fileSpec"></param>
         private Regex FileSpecToRegex(string fileSpec)
         {
             string pattern = fileSpec.Trim();
@@ -450,6 +492,7 @@ namespace BlinkSyncLib
         /// <summary>
         /// Converts array of filespec strings to array of equivalent regexes
         /// </summary>
+        /// <param name="fileSpecs"></param>
         private Regex[] FileSpecsToRegex(string[] fileSpecs)
         {
             List<Regex> regexList = new List<Regex>();
@@ -492,8 +535,9 @@ namespace BlinkSyncLib
         {
             if (this.Log != null)
                 this.Log.Invoke(String.Format(message, args));
-
         }
-    }
 
+        #endregion
+    }
+    
 }
